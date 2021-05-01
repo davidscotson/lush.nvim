@@ -1,7 +1,9 @@
 local api = vim.api
 local uv = vim.loop
 local hsl = require('lush.vivid.hsl')
+local apc = require('lush.vivid.sapc')
 local hsluv = require('lush.vivid.hsluv')
+local rgbconvert = require('lush.vivid.rgb.convert')
 local lush = require('lush')
 
 local vt_group_ns = api.nvim_create_namespace("lushify_group")
@@ -76,9 +78,9 @@ local function create_highlight_group_for_color(color)
   -- FIXME: also not much error protection going on
   if not M.named_hex_highlight_groups[group_name] then
     M.named_hex_highlight_groups[group_name] = color
-    local bg, fg = color, color
-    -- make it readable
-    fg = bg.l > 50 and fg.lightness(0) or fg.lightness(100)
+    local bg = color
+    local fg = bg.readable()
+
     -- define the highlight group
     api.nvim_command("highlight! " ..
                       group_name ..

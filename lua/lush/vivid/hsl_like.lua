@@ -1,5 +1,7 @@
 local clamp = require('lush.math').clamp
+local rgbconvert = require('lush.vivid.rgb.convert')
 local round = require('lush.math').round
+local apc = require('lush.vivid.sapc')
 
 --
 -- HSL-like colours
@@ -162,12 +164,18 @@ local function wrap_color(color, colorspace_to_hex_fn)
   end
 
   local readable = function(color)
-    return function()
-      if color.l >= 50 then
-        return wrap_color({h = color.h, s = color.s, l = 0}, colorspace_to_hex_fn)
-      else
-        return wrap_color({h = color.h, s = color.s, l = 100}, colorspace_to_hex_fn)
-      end
+    return function(targetContrast)
+        targetContrast = targetContrast or 50 -- how to set this globally?
+        local targetY = apc.SAPCinverse(color.l/100, false, targetContrast)
+      print(targetY)
+        if targetY >= 1 or targetY <= 0 then -- try the inverse
+            local inversetargetY = apc.SAPCinverse(color.l/100, false, -targetContrast)
+      print(inversetargetY)
+            if inversetargetY <= 1 or inversetargetY >= 0 then -- choose the furthest
+                targetY = inversetargetY
+            end
+        end
+        return wrap_color({h = 0, s = 0, l = targetY * 100}, colorspace_to_hex_fn)
     end
   end
 
